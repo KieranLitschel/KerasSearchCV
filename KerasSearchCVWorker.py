@@ -4,8 +4,8 @@ import os
 import sys
 import dill
 
-dillPath = sys.argv[1]
-additional_import = sys.argv[2]
+additional_import = sys.argv[1]
+dillPath = sys.argv[2]
 thread_number = int(sys.argv[3])
 
 if additional_import != '':
