@@ -174,7 +174,7 @@ class WorkerThread(threading.Thread):
 
 
 class Host:
-    def __init__(self, path="KSCV.dill", pythonPath="venv\Scripts\python.exe", reload=False):
+    def __init__(self, path="KSCV.dill", reload=False):
         global dir_path
         dir_path = os.path.dirname(os.path.realpath(__file__))
         global writePickleLock
@@ -182,7 +182,6 @@ class Host:
         global changeProcsLock
         changeProcsLock = threading.Lock()
         self.dillPath = path
-        self.pythonPath = pythonPath
         self.file_found = False
         if reload:
             try:
@@ -254,7 +253,7 @@ class Host:
             kill_flag = False
             try:
                 for thread_no in range(0, self.thread_count):
-                    thread = WorkerThread(thread_no, self.dillPath, self.pythonPath)
+                    thread = WorkerThread(thread_no, self.dillPath)
                     thread.start()
                     threads.append(thread)
                 msg = ""
