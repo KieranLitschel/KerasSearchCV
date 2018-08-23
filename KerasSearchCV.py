@@ -112,7 +112,7 @@ class WorkerThread(threading.Thread):
             toDo = dill.load(handle)
         toDo.failedJob(self.thread_number)
         with open(self.dillPath, 'wb') as handle:
-            dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False)
+            dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
         writePickleLock.release()
 
     def run(self):
@@ -121,7 +121,7 @@ class WorkerThread(threading.Thread):
             toDo = dill.load(handle)
         nextJob = toDo.setNextJob(self.thread_number)
         with open(self.dillPath, 'wb') as handle:
-            dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False)
+            dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
         del toDo
         writePickleLock.release()
         if nextJob is None:
@@ -155,7 +155,7 @@ class WorkerThread(threading.Thread):
             if nextJob is None:
                 more_jobs = False
             with open(self.dillPath, 'wb') as handle:
-                dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False)
+                dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             print("  Finished fold " + str(oldJob[1] + 1) + " of job " + str(oldJob[0]) + (
                     " it took %.1f minutes" % ((time.time() - start) / 60)))
             writePickleLock.release()
@@ -179,7 +179,7 @@ class Host:
                 toDo.queueJobsDoing()
                 self.thread_count = toDo.threads
                 with open(self.dillPath, 'wb') as handle:
-                    dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False)
+                    dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
                 self.file_found = True
             except FileNotFoundError:
                 print("Error: Could not find the file at " + path)
@@ -217,7 +217,7 @@ class Host:
             model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, verbose=0)
             toDo = ToDo(model, cv, jobs, trainX, trainY, threads, total_memory, seed)
             with open(self.dillPath, 'wb') as handle:
-                dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False)
+                dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             self.thread_count = threads
             self.file_found = True
 
@@ -228,7 +228,7 @@ class Host:
                     toDo = dill.load(handle)
                 toDo.setNumberOfThreads(threads, total_memory)
                 with open(self.dillPath, 'wb') as handle:
-                    dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False)
+                    dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             if threads is not None:
                 self.thread_count = threads
         else:
