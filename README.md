@@ -47,7 +47,7 @@ Next we need to call the instances method create_new, and supply it the follow a
 * total_memory - The fraction of memory on the GPU that should be allocated to the search, note if you get an error messages whose traceback starts "CUBLAS_STATUS_ALLOC_FAILED", you have set the fraction too high, and should try a lower number.
 * seed - The seed passed to make results repeatable, by default it is 0
 
-Finally we need to call the instances method start, which starts the search. If at any point you want to quit the search simply type "quit" and press enter.
+Finally we need to call the instances method start, which starts the search. If at any point you want to quit the search simply type "quit" and press enter. Also note that once the search has finished, you will be informed, and then will need to enter quit to kill all the threads.
 
 ## Resume a search
 
@@ -55,4 +55,4 @@ Resuming a search is very similair to creating one. You should create an instanc
 
 ## Getting the results
 
-At the end of the search the dictionary containing the results will be returned, but if at any point you would like to access the results, simply quit the search, and create a new instance in the same way you would if you were resuming a search, but instead of calling start, call getResults, and the results so far will be returned.
+At the end of the search you can get the results be calling getResults on the instance. But if at any point you would like to access the results, simply quit the search, and create a new instance in the same way you would if you were resuming a search, but instead of calling start, call getResults, and the results so far will be returned.
