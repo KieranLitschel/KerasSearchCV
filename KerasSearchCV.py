@@ -136,7 +136,7 @@ class WorkerThread(threading.Thread):
             print("Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
-                [self.pythonPath, os.path.join(package_directory, "KerasSearchCVWorker.py"), self.picklePath,
+                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), self.picklePath,
                  str(self.thread_number)], stdout=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
@@ -162,8 +162,8 @@ class WorkerThread(threading.Thread):
 
 class Host:
     def __init__(self, path="KSCV.pickle", pythonPath="venv\Scripts\python.exe", reload=False):
-        global package_directory
-        package_directory = os.path.dirname(os.path.abspath(__file__))
+        global dir_path
+        dir_path = os.path.dirname(os.path.realpath(__file__))
         global writePickleLock
         writePickleLock = threading.Lock()
         global changeProcsLock
