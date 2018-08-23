@@ -122,7 +122,10 @@ class WorkerThread(threading.Thread):
             pickle.dump(toDo, handle, protocol=pickle.HIGHEST_PROTOCOL)
         del toDo
         writePickleLock.release()
-        more_jobs = True
+        if nextJob is None:
+            more_jobs = False
+        else:
+            more_jobs = True
         while more_jobs and kill_flag is False:
             changeProcsLock.acquire()
             if kill_flag:
