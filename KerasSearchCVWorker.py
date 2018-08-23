@@ -5,7 +5,12 @@ import sys
 import dill
 
 dillPath = sys.argv[1]
-thread_number = int(sys.argv[2])
+additional_import = sys.argv[2]
+thread_number = int(sys.argv[3])
+
+if additional_import != '':
+    import importlib
+    importlib.import_module(additional_import)
 
 with open(dillPath, 'rb') as handle:
     toDo = dill.load(handle)
@@ -23,7 +28,8 @@ keras.backend.set_session(sess)
 
 job, fold = toDo.getJob(thread_number)
 trainX, trainY, testX, testY = toDo.getTrainTest(fold)
-model = toDo.model
+model_constructor = toDo.model_constructor
+model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor,**job)
 
 model.set_params(**job)
 model.fit(trainX, trainY)

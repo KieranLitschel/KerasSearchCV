@@ -6,14 +6,14 @@ import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.model_selection import ParameterGrid
 from sklearn.model_selection import ParameterSampler
-from tensorflow import keras
 import time
 import os
+import inspect
 
 
 class ToDo:
-    def __init__(self, model, cv, jobs, trainX, trainY, threads, total_memory=0.8, seed=0):
-        self.model = model
+    def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, total_memory=0.8, seed=0):
+        self.model_constructor = model_constructor
         self.cv = cv
         self.trainX = trainX
         self.trainY = trainY
@@ -23,6 +23,11 @@ class ToDo:
         self.total_memory = total_memory
         self.threads = threads
         self.memory_frac = total_memory / threads
+
+        if inspect.getfile(model_constructor) != "<input>":
+            self.additional_import = inspect.getfile(model_constructor)
+        else:
+            self.additional_import = ""
 
         np.random.seed(seed)
         kf = KFold(n_splits=cv, random_state=seed)
@@ -119,6 +124,7 @@ class WorkerThread(threading.Thread):
         writePickleLock.acquire()
         with open(self.dillPath, 'rb') as handle:
             toDo = dill.load(handle)
+        additional_import = toDo.additional_import
         nextJob = toDo.setNextJob(self.thread_number)
         with open(self.dillPath, 'wb') as handle:
             dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
@@ -137,7 +143,7 @@ class WorkerThread(threading.Thread):
             print("Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
-                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), self.dillPath,
+                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), additional_import, self.dillPath,
                  str(self.thread_number)], stdout=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
@@ -214,8 +220,7 @@ class Host:
                 jobs = list(ParameterGrid(param_grid))
             elif search_type == 'random':
                 jobs = list(ParameterSampler(param_grid, iterations, seed))
-            model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, verbose=0)
-            toDo = ToDo(model, cv, jobs, trainX, trainY, threads, total_memory, seed)
+            toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, total_memory, seed)
             with open(self.dillPath, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             self.thread_count = threads
