@@ -2,7 +2,7 @@
 
 Whilst tuning hyperparameters in Google Cloud Compute I discovered two problems with using the implementations of RandomSearchCV and GridSearchCV supplied in the Sci-Kit Learn library. So I decided to write my own implementations to overcome these problems.
 
-# Problems with the implementation of searches in Sci-Kit Learn and how my functions overcome them
+# Problems with the implementation of searches in Sci-Kit Learn and how my functions overcomes them
 
 ## Problem 1: Some neural networks under utilize the GPU
 
