@@ -135,7 +135,7 @@ class WorkerThread(threading.Thread):
             print("Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
-                [self.pythonPath, "SearchCVWorker.py", self.picklePath, str(self.thread_number)],
+                [self.pythonPath, "KerasSearchCVWorker.py", self.picklePath, str(self.thread_number)],
                 stdout=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
