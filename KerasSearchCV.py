@@ -1,7 +1,7 @@
 import threading
 import subprocess
 from subprocess import PIPE
-import pickle
+import dill
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.model_selection import ParameterGrid
@@ -99,28 +99,28 @@ class ToDo:
 
 
 class WorkerThread(threading.Thread):
-    def __init__(self, thread_number, picklePath, pythonPath):
+    def __init__(self, thread_number, dillPath, pythonPath):
         threading.Thread.__init__(self)
         self.thread_number = thread_number
-        self.picklePath = picklePath
+        self.dillPath = dillPath
         self.pythonPath = pythonPath
 
     def failed_job(self):
         writePickleLock.acquire()
-        with open(self.picklePath, 'rb') as handle:
-            toDo = pickle.load(handle)
+        with open(self.dillPath, 'rb') as handle:
+            toDo = dill.load(handle)
         toDo.failedJob(self.thread_number)
-        with open(self.picklePath, 'wb') as handle:
-            pickle.dump(toDo, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(self.dillPath, 'wb') as handle:
+            dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL)
         writePickleLock.release()
 
     def run(self):
         writePickleLock.acquire()
-        with open(self.picklePath, 'rb') as handle:
-            toDo = pickle.load(handle)
+        with open(self.dillPath, 'rb') as handle:
+            toDo = dill.load(handle)
         nextJob = toDo.setNextJob(self.thread_number)
-        with open(self.picklePath, 'wb') as handle:
-            pickle.dump(toDo, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(self.dillPath, 'wb') as handle:
+            dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL)
         del toDo
         writePickleLock.release()
         if nextJob is None:
@@ -136,7 +136,7 @@ class WorkerThread(threading.Thread):
             print("Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
-                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), self.picklePath,
+                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), self.dillPath,
                  str(self.thread_number)], stdout=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
@@ -146,39 +146,39 @@ class WorkerThread(threading.Thread):
                 break
             acc = float(output)
             writePickleLock.acquire()
-            with open(self.picklePath, 'rb') as handle:
-                toDo = pickle.load(handle)
+            with open(self.dillPath, 'rb') as handle:
+                toDo = dill.load(handle)
             toDo.doneJob(self.thread_number, acc)
             oldJob = nextJob
             nextJob = toDo.setNextJob(self.thread_number)
             if nextJob is None:
                 more_jobs = False
-            with open(self.picklePath, 'wb') as handle:
-                pickle.dump(toDo, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            with open(self.dillPath, 'wb') as handle:
+                dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL)
             print("  Finished fold " + str(oldJob[1] + 1) + " of job " + str(oldJob[0]) + (
                     " it took %.1f minutes" % ((time.time() - start) / 60)))
             writePickleLock.release()
 
 
 class Host:
-    def __init__(self, path="KSCV.pickle", pythonPath="venv\Scripts\python.exe", reload=False):
+    def __init__(self, path="KSCV.dill", pythonPath="venv\Scripts\python.exe", reload=False):
         global dir_path
         dir_path = os.path.dirname(os.path.realpath(__file__))
         global writePickleLock
         writePickleLock = threading.Lock()
         global changeProcsLock
         changeProcsLock = threading.Lock()
-        self.picklePath = path
+        self.dillPath = path
         self.pythonPath = pythonPath
         self.file_found = False
         if reload:
             try:
-                with open(self.picklePath, 'rb') as handle:
-                    toDo = pickle.load(handle)
+                with open(self.dillPath, 'rb') as handle:
+                    toDo = dill.load(handle)
                 toDo.queueJobsDoing()
                 self.thread_count = toDo.threads
-                with open(self.picklePath, 'wb') as handle:
-                    pickle.dump(toDo, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                with open(self.dillPath, 'wb') as handle:
+                    dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL)
                 self.file_found = True
             except FileNotFoundError:
                 print("Error: Could not find the file at " + path)
@@ -187,8 +187,8 @@ class Host:
                    iterations=None, cv=4, threads=2, total_memory=0.8, seed=0):
         create = True
         try:
-            with open(self.picklePath, 'rb') as handle:
-                toDo = pickle.load(handle)
+            with open(self.dillPath, 'rb') as handle:
+                toDo = dill.load(handle)
         except FileNotFoundError:
             create = False
         if create is False:
@@ -214,19 +214,19 @@ class Host:
             elif search_type == 'random':
                 jobs = list(ParameterSampler(param_grid, iterations, seed))
             toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, total_memory, seed)
-            with open(self.picklePath, 'wb') as handle:
-                pickle.dump(toDo, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            with open(self.dillPath, 'wb') as handle:
+                dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL)
             self.thread_count = threads
             self.file_found = True
 
     def change_threads_memory(self, threads=None, total_memory=None):
         if self.file_found is True:
             if total_memory is not None or threads is not None:
-                with open(self.picklePath, 'rb') as handle:
-                    toDo = pickle.load(handle)
+                with open(self.dillPath, 'rb') as handle:
+                    toDo = dill.load(handle)
                 toDo.setNumberOfThreads(threads, total_memory)
-                with open(self.picklePath, 'wb') as handle:
-                    pickle.dump(toDo, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                with open(self.dillPath, 'wb') as handle:
+                    dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL)
             if threads is not None:
                 self.thread_count = threads
         else:
@@ -241,7 +241,7 @@ class Host:
             kill_flag = False
             try:
                 for thread_no in range(0, self.thread_count):
-                    thread = WorkerThread(thread_no, self.picklePath, self.pythonPath)
+                    thread = WorkerThread(thread_no, self.dillPath, self.pythonPath)
                     thread.start()
                     threads.append(thread)
                 msg = ""
@@ -264,8 +264,8 @@ class Host:
 
     def getResults(self):
         if self.file_found is True:
-            with open(self.picklePath, 'rb') as handle:
-                toDo = pickle.load(handle)
+            with open(self.dillPath, 'rb') as handle:
+                toDo = dill.load(handle)
             return toDo.results
         else:
             print("Error: You must create or load a search before doing this")

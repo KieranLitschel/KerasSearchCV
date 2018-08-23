@@ -1,14 +1,15 @@
 import tensorflow as tf
 import tensorflow.keras as keras
-import pickle
+import dill
 import os
 import sys
+import dill
 
-picklePath = sys.argv[1]
+dillPath = sys.argv[1]
 thread_number = int(sys.argv[2])
 
-with open(picklePath, 'rb') as handle:
-    toDo = pickle.load(handle)
+with open(dillPath, 'rb') as handle:
+    toDo = dill.load(handle)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
