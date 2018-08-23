@@ -10,7 +10,12 @@ thread_number = int(sys.argv[3])
 
 if additional_import != '':
     import importlib
-    importlib.import_module(additional_import)
+    path_splt = additional_import.split("\\")
+    directory = "\\".join(path_splt[0:len(path_splt)-1])
+    sys.path.append(directory)
+
+    module = path_splt[-1]
+    importlib.import_module(module)
 
 with open(dillPath, 'rb') as handle:
     toDo = dill.load(handle)
