@@ -9,6 +9,7 @@ from sklearn.model_selection import ParameterSampler
 import time
 import os
 import inspect
+import sys
 
 
 class ToDo:
@@ -109,11 +110,11 @@ class ToDo:
 
 
 class WorkerThread(threading.Thread):
-    def __init__(self, thread_number, dillPath, pythonPath):
+    def __init__(self, thread_number, dillPath):
         threading.Thread.__init__(self)
         self.thread_number = thread_number
         self.dillPath = dillPath
-        self.pythonPath = pythonPath
+        self.pythonPath = sys.executable
 
     def failed_job(self):
         writePickleLock.acquire()

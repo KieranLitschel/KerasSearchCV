@@ -11,6 +11,7 @@ thread_number = int(sys.argv[4])
 
 if additional_import_file != '':
     import importlib
+
     sys.path.append(additional_import_file)
 
     importlib.import_module(additional_import)
@@ -32,9 +33,8 @@ keras.backend.set_session(sess)
 job, fold = toDo.getJob(thread_number)
 trainX, trainY, testX, testY = toDo.getTrainTest(fold)
 model_constructor = toDo.model_constructor
-model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor,**job)
 
-model.set_params(**job)
+model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, verbose=0)
 model.fit(trainX, trainY)
 acc = model.score(testX, testY)
 
