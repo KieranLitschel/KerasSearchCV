@@ -7,6 +7,7 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import ParameterGrid
 from sklearn.model_selection import ParameterSampler
 import time
+import os
 
 
 class ToDo:
@@ -135,8 +136,8 @@ class WorkerThread(threading.Thread):
             print("Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
-                [self.pythonPath, "venv\Lib\site-packages\KerasSearchCVWorker.py", self.picklePath, str(self.thread_number)],
-                stdout=PIPE)
+                [self.pythonPath, os.path.join(package_directory, "KerasSearchCVWorker.py"), self.picklePath,
+                 str(self.thread_number)], stdout=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
             output = proc.communicate()[0].decode("utf-8")
@@ -161,6 +162,8 @@ class WorkerThread(threading.Thread):
 
 class Host:
     def __init__(self, path="KSCV.pickle", pythonPath="venv\Scripts\python.exe", reload=False):
+        global package_directory
+        package_directory = os.path.dirname(os.path.abspath(__file__))
         global writePickleLock
         writePickleLock = threading.Lock()
         global changeProcsLock
@@ -199,8 +202,9 @@ class Host:
                     create = True
                     break
                 elif msg == 'n':
-                    print("The file will not be overwritten, please create a new object or change the path attribute in "
-                          "this object to point to a different file before calling this method again.")
+                    print(
+                        "The file will not be overwritten, please create a new object or change the path attribute in "
+                        "this object to point to a different file before calling this method again.")
                     break
         if create:
             if search_type == 'custom':
