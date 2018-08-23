@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: KerasSearchCV
+Version: 0.1
+Summary: Built for the implementation of Keras in Tensorflow. Behaves similarly to GridSearchCV and RandomizedSearchCV in Sci-Kit learn, but allows for progress to be saved between folds and for fitting and scoring folds in parallel.
+Home-page: UNKNOWN
+Author: UNKNOWN
+Author-email: UNKNOWN
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
