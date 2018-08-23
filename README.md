@@ -39,9 +39,9 @@ Next we need to call the instances method create_new, and supply it the follow a
 * model_constructor - Should be given a reference to a build function which constructs, compiles and returns a Keras model.
 * search_type - Should be "grid" for a grid search, "random" for a randomized search, and "custom" for a custom search
 * param_grid
-** If search_type is "grid", then it should be a parameter grid like you would pass GridSearchCV in Scikit-Learn.
-** If search_type is "random", then it should be a parameter distribution like you would pass RandomizedSearchCV in Scikit-Learn.
-** If search_tpye is "custom", then it should be a list of dictionaries, where each dictionary is a set of parameters you'd like to investigate
+  * If search_type is "grid", then it should be a parameter grid like you would pass GridSearchCV in Scikit-Learn.
+  * If search_type is "random", then it should be a parameter distribution like you would pass RandomizedSearchCV in Scikit-Learn.
+  * If search_tpye is "custom", then it should be a list of dictionaries, where each dictionary is a set of parameters you'd like to investigate
 * cv - The number of folds you want to do of cross-validation for each model
 * threads - The number of models you want to train and score in parallel, it is worth experimenting with this number to see what suits your model and GPU best.
 * total_memory - The fraction of memory on the GPU that should be allocated to the search, note if you get an error messages whose traceback starts "CUBLAS_STATUS_ALLOC_FAILED", you have set the fraction too high, and should try a lower number.
