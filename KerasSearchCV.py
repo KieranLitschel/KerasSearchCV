@@ -6,13 +6,14 @@ import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.model_selection import ParameterGrid
 from sklearn.model_selection import ParameterSampler
+from tensorflow import keras
 import time
 import os
 
 
 class ToDo:
-    def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, total_memory=0.8, seed=0):
-        self.model_constructor = model_constructor
+    def __init__(self, model, cv, jobs, trainX, trainY, threads, total_memory=0.8, seed=0):
+        self.model = model
         self.cv = cv
         self.trainX = trainX
         self.trainY = trainY
@@ -213,7 +214,8 @@ class Host:
                 jobs = list(ParameterGrid(param_grid))
             elif search_type == 'random':
                 jobs = list(ParameterSampler(param_grid, iterations, seed))
-            toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, total_memory, seed)
+            model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, verbose=0)
+            toDo = ToDo(model, cv, jobs, trainX, trainY, threads, total_memory, seed)
             with open(self.dillPath, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL)
             self.thread_count = threads

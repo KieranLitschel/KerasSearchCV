@@ -1,6 +1,5 @@
 import tensorflow as tf
 import tensorflow.keras as keras
-import dill
 import os
 import sys
 import dill
@@ -24,9 +23,8 @@ keras.backend.set_session(sess)
 
 job, fold = toDo.getJob(thread_number)
 trainX, trainY, testX, testY = toDo.getTrainTest(fold)
-model_constructor = toDo.model_constructor
+model = toDo.model
 
-model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, verbose=0)
 model.set_params(**job)
 model.fit(trainX, trainY)
 acc = model.score(testX, testY)
