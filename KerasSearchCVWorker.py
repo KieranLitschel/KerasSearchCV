@@ -4,18 +4,16 @@ import os
 import sys
 import dill
 
-additional_import = sys.argv[1]
-dillPath = sys.argv[2]
-thread_number = int(sys.argv[3])
+additional_import_file = sys.argv[1]
+additional_import = sys.argv[2]
+dillPath = sys.argv[3]
+thread_number = int(sys.argv[4])
 
-if additional_import != '':
+if additional_import_file != '':
     import importlib
-    path_splt = additional_import.split("\\")
-    directory = "\\".join(path_splt[0:len(path_splt)-1])
-    sys.path.append(directory)
+    sys.path.append(additional_import_file)
 
-    module = path_splt[-1]
-    importlib.import_module(module)
+    importlib.import_module(additional_import)
 
 with open(dillPath, 'rb') as handle:
     toDo = dill.load(handle)

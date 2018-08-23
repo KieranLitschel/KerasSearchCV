@@ -25,8 +25,10 @@ class ToDo:
         self.memory_frac = total_memory / threads
 
         if inspect.getfile(model_constructor) != "<input>":
-            self.additional_import = inspect.getfile(model_constructor)
+            self.additional_import_file = inspect.getfile(model_constructor)
+            self.additional_import = inspect.getmodulename(self.additional_import_file)
         else:
+            self.additional_import_file = ""
             self.additional_import = ""
 
         np.random.seed(seed)
@@ -124,6 +126,7 @@ class WorkerThread(threading.Thread):
         writePickleLock.acquire()
         with open(self.dillPath, 'rb') as handle:
             toDo = dill.load(handle)
+        additional_import_file = toDo.additional_import_file
         additional_import = toDo.additional_import
         nextJob = toDo.setNextJob(self.thread_number)
         with open(self.dillPath, 'wb') as handle:
@@ -143,8 +146,8 @@ class WorkerThread(threading.Thread):
             print("Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
-                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), additional_import, self.dillPath,
-                 str(self.thread_number)], stdout=PIPE)
+                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), additional_import_file, additional_import,
+                 self.dillPath, str(self.thread_number)], stdout=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
             output = proc.communicate()[0].decode("utf-8")
