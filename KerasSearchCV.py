@@ -128,6 +128,7 @@ class WorkerThread(threading.Thread):
         self.pythonPath = sys.executable
 
     def run(self):
+        global kill_flag
         writePickleLock.acquire()
         with open(self.dillPath, 'rb') as handle:
             toDo = dill.load(handle)
@@ -160,7 +161,6 @@ class WorkerThread(threading.Thread):
                 break
             if proc.returncode != 0:
                 print("Error encountered whilst scoring and fitting a model, please enter quit and reload the search")
-                global kill_flag
                 kill_flag = True
                 break
             acc = float(output)
