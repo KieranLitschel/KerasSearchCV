@@ -91,7 +91,8 @@ class ToDo:
                 self.jobs.append(job_fold)
         for i in range(0, len(self.doing)):
             self.doing[i] = None
-        for job, old_job_str in self.job_str_tracker:
+        for i in range(0, len(self.job_str_tracker)):
+            job, old_job_str = self.job_str_tracker[i]
             if (str(job)) != old_job_str:
                 if self.accuracies.get(old_job_str) is not None:
                     self.accuracies[str(job)] = self.accuracies[old_job_str]
@@ -99,6 +100,7 @@ class ToDo:
                 if self.results.get(old_job_str) is not None:
                     self.results[str(job)] = self.results[old_job_str]
                     del self.results[old_job_str]
+                self.job_str_tracker[i] = (job, str(job))
 
     def setNumberOfThreads(self, threads=None, total_memory=None):
         self.prepare_for_reload()
