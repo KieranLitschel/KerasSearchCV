@@ -156,11 +156,14 @@ class WorkerThread(threading.Thread):
                  self.dillPath, str(self.thread_number)], stdout=PIPE, stderr=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
-            output = proc.communicate()[0].decode("utf-8")
+            output, err = proc.communicate()
+            output = output.decode("utf-8")
+            err = err.decode("utf-8")
             if kill_flag:
                 break
             if proc.returncode != 0:
                 print("Error encountered whilst scoring and fitting a model, please enter quit and reload the search")
+                print(err)
                 kill_flag = True
                 break
             acc = float(output)
