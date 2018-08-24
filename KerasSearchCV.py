@@ -62,7 +62,7 @@ class ToDo:
                     done = False
                     break
             if done:
-                print("Finishing up last fold, once fold completed message is recieved, type \"quit\" to exit")
+                print("-Finishing up last fold, once fold completed message is recieved, type \"quit\" to exit")
         return self.doing[thread_number]
 
     def getJob(self, thread_number):
@@ -76,7 +76,7 @@ class ToDo:
             mean = np.average(accs)
             std = np.std(accs)
             self.results[str(job)] = {'mean': mean, 'std': std, 'accs': accs}
-            print("Got mean of " + ("%.3f" % mean) + " and std of " + ("%.3f" % std) + " with parameters " + str(job))
+            print("---Got mean of " + ("%.3f" % mean) + " and std of " + ("%.3f" % std) + " with parameters " + str(job))
         self.doing[thread_number] = None
 
     def failedJob(self, thread_number):
@@ -146,7 +146,7 @@ class WorkerThread(threading.Thread):
                 self.failed_job()
                 changeProcsLock.release()
                 break
-            print("Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
+            print("-Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
                 [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), additional_import_dir, additional_import,
@@ -168,7 +168,7 @@ class WorkerThread(threading.Thread):
                 more_jobs = False
             with open(self.dillPath, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
-            print("  Finished fold " + str(oldJob[1] + 1) + " of job " + str(oldJob[0]) + (
+            print("--Finished fold " + str(oldJob[1] + 1) + " of job " + str(oldJob[0]) + (
                     " it took %.1f minutes" % ((time.time() - start) / 60)))
             writePickleLock.release()
 
@@ -197,12 +197,12 @@ class Host:
 
     def create_new(self, trainX, trainY, model_constructor, search_type, param_grid,
                    iterations=None, cv=4, threads=2, total_memory=0.8, seed=0):
-        create = True
+        create = False
         try:
             with open(self.dillPath, 'rb') as handle:
                 toDo = dill.load(handle)
         except FileNotFoundError:
-            create = False
+            create = True
         if create is False:
             msg = ""
             while msg != "y" and msg != "n":
