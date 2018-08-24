@@ -223,7 +223,7 @@ class Host:
                 print("Error: Could not find the file at " + path)
 
     def create_new(self, trainX, trainY, model_constructor, search_type, param_grid,
-                   iterations=None, cv=4, threads=2, total_memory=0.8, seed=0):
+                   iterations=None, cv=4, threads=2, total_memory=0.8, seed=0, validX=None, validY=None):
         create = False
         try:
             with open(self.dillPath, 'rb') as handle:
@@ -252,7 +252,7 @@ class Host:
                 jobs = list(ParameterGrid(param_grid))
             elif search_type == 'random':
                 jobs = list(ParameterSampler(param_grid, iterations, seed))
-            toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, total_memory, seed)
+            toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, total_memory, seed, validX, validY)
             with open(self.dillPath, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             self.thread_count = threads
