@@ -1,15 +1,16 @@
-import threading
+import inspect
+import os
 import subprocess
+import sys
+import threading
+import time
 from subprocess import PIPE
+
 import dill
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.model_selection import ParameterGrid
 from sklearn.model_selection import ParameterSampler
-import time
-import os
-import inspect
-import sys
 
 
 class ToDo:
@@ -25,10 +26,14 @@ class ToDo:
         self.threads = threads
         self.memory_frac = total_memory / threads
 
+        self.job_str_tracker = []
+        for job in jobs:
+            self.job_str_tracker.append((job, str(job)))
+
         if inspect.getfile(model_constructor) != "<input>":
             additional_import_file = inspect.getfile(model_constructor)
             paths = additional_import_file.split("\\")
-            self.additional_import_dir = "\\".join(paths[0:len(paths)-1])
+            self.additional_import_dir = "\\".join(paths[0:len(paths) - 1])
             self.additional_import = inspect.getmodulename(additional_import_file)
         else:
             self.additional_import_file = ""
@@ -76,18 +81,27 @@ class ToDo:
             mean = np.average(accs)
             std = np.std(accs)
             self.results[str(job)] = {'mean': mean, 'std': std, 'accs': accs}
-            print("---Got mean of " + ("%.3f" % mean) + " and std of " + ("%.3f" % std) + " with parameters " + str(job))
+            print(
+                "---Got mean of " + ("%.3f" % mean) + " and std of " + ("%.3f" % std) + " with parameters " + str(job))
         self.doing[thread_number] = None
 
-    def queueJobsDoing(self):
+    def prepare_for_reload(self):
         for job_fold in self.doing:
             if job_fold is not None:
                 self.jobs.append(job_fold)
         for i in range(0, len(self.doing)):
             self.doing[i] = None
+        for job, old_job_str in self.job_str_tracker:
+            if (str(job)) != old_job_str:
+                if self.accuracies.get(old_job_str) is not None:
+                    self.accuracies[str(job)] = self.accuracies[old_job_str]
+                    del self.accuracies[old_job_str]
+                if self.results.get(old_job_str) is not None:
+                    self.results[str(job)] = self.results[old_job_str]
+                    del self.results[old_job_str]
 
     def setNumberOfThreads(self, threads=None, total_memory=None):
-        self.queueJobsDoing()
+        self.prepare_for_reload()
         if total_memory is not None:
             self.total_memory = total_memory
         if threads is not None:
@@ -134,7 +148,8 @@ class WorkerThread(threading.Thread):
             print("-Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
-                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), additional_import_dir, additional_import,
+                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), additional_import_dir,
+                 additional_import,
                  self.dillPath, str(self.thread_number)], stdout=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
@@ -171,7 +186,7 @@ class Host:
             try:
                 with open(self.dillPath, 'rb') as handle:
                     toDo = dill.load(handle)
-                toDo.queueJobsDoing()
+                toDo.prepare_for_reload()
                 self.thread_count = toDo.threads
                 with open(self.dillPath, 'wb') as handle:
                     dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
