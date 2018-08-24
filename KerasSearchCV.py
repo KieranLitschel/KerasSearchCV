@@ -79,11 +79,6 @@ class ToDo:
             print("---Got mean of " + ("%.3f" % mean) + " and std of " + ("%.3f" % std) + " with parameters " + str(job))
         self.doing[thread_number] = None
 
-    def failedJob(self, thread_number):
-        job = self.doing[thread_number]
-        self.jobs.append(job)
-        self.doing.remove(job)
-
     def queueJobsDoing(self):
         for job_fold in self.doing:
             if job_fold is not None:
@@ -116,15 +111,6 @@ class WorkerThread(threading.Thread):
         self.dillPath = dillPath
         self.pythonPath = sys.executable
 
-    def failed_job(self):
-        writePickleLock.acquire()
-        with open(self.dillPath, 'rb') as handle:
-            toDo = dill.load(handle)
-        toDo.failedJob(self.thread_number)
-        with open(self.dillPath, 'wb') as handle:
-            dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
-        writePickleLock.release()
-
     def run(self):
         writePickleLock.acquire()
         with open(self.dillPath, 'rb') as handle:
@@ -143,7 +129,6 @@ class WorkerThread(threading.Thread):
         while more_jobs and kill_flag is False:
             changeProcsLock.acquire()
             if kill_flag:
-                self.failed_job()
                 changeProcsLock.release()
                 break
             print("-Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
@@ -155,7 +140,6 @@ class WorkerThread(threading.Thread):
             changeProcsLock.release()
             output = proc.communicate()[0].decode("utf-8")
             if kill_flag:
-                self.failed_job()
                 break
             acc = float(output)
             writePickleLock.acquire()
