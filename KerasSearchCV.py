@@ -14,11 +14,14 @@ from sklearn.model_selection import ParameterSampler
 
 
 class ToDo:
-    def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, total_memory=0.8, seed=0):
+    def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, total_memory=0.8, seed=0, validX=None,
+                 validY=None):
         self.model_constructor = model_constructor
         self.cv = cv
         self.trainX = trainX
         self.trainY = trainY
+        self.validX = validX
+        self.validY = validY
         self.seed = seed
         self.folds = []
         self.doing = [None] * threads
@@ -39,10 +42,14 @@ class ToDo:
             self.additional_import_file = ""
             self.additional_import = ""
 
-        np.random.seed(seed)
-        kf = KFold(n_splits=cv, random_state=seed)
-        for train, test in kf.split(trainX):
-            self.folds.append((train, test))
+        if cv != 1:
+            np.random.seed(seed)
+            kf = KFold(n_splits=cv, random_state=seed)
+            for train, test in kf.split(trainX):
+                self.folds.append((train, test))
+        else:
+            if validX is None or validY is None:
+                print("WARNING: Set to do 1 fold CV but validation set is not supplied / fully supplied")
 
         self.jobs = []
         for job in jobs:
@@ -77,12 +84,17 @@ class ToDo:
         job, _ = self.getJob(thread_number)
         self.accuracies[str(job)].append(accuracy)
         if len(self.accuracies[str(job)]) == self.cv:
-            accs = np.array(self.accuracies[str(job)])
-            mean = np.average(accs)
-            std = np.std(accs)
-            self.results[str(job)] = {'mean': mean, 'std': std, 'accs': accs}
-            print(
-                "---Got mean of " + ("%.3f" % mean) + " and std of " + ("%.3f" % std) + " with parameters " + str(job))
+            if self.cv != 1:
+                accs = np.array(self.accuracies[str(job)])
+                mean = np.average(accs)
+                std = np.std(accs)
+                self.results[str(job)] = {'mean': mean, 'std': std, 'accs': accs}
+                print(
+                    "---Got mean of " + ("%.3f" % mean) + " and std of " + ("%.3f" % std) + " with parameters " + str(
+                        job))
+            else:
+                self.results[str(job)] = {'acc': self.accuracies[str(job)][0]}
+                print(("---Got accuracy of %.3f" % self.accuracies[str(job)][0]) + " with parameters " + str(job))
         self.doing[thread_number] = None
 
     def prepare_for_reload(self):
@@ -113,10 +125,16 @@ class ToDo:
         self.memory_frac = self.total_memory / threads
 
     def getTrainTest(self, fold):
-        trainX = self.trainX[self.folds[fold][0]]
-        trainY = self.trainY[self.folds[fold][0]]
-        testX = self.trainX[self.folds[fold][1]]
-        testY = self.trainY[self.folds[fold][1]]
+        if self.cv != 1:
+            trainX = self.trainX[self.folds[fold][0]]
+            trainY = self.trainY[self.folds[fold][0]]
+            testX = self.trainX[self.folds[fold][1]]
+            testY = self.trainY[self.folds[fold][1]]
+        else:
+            trainX = self.trainX
+            trainY = self.trainY
+            testX = self.validX
+            testY = self.validY
         return trainX, trainY, testX, testY
 
 
