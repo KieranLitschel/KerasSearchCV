@@ -152,11 +152,16 @@ class WorkerThread(threading.Thread):
             proc = subprocess.Popen(
                 [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), additional_import_dir,
                  additional_import,
-                 self.dillPath, str(self.thread_number)], stdout=PIPE)
+                 self.dillPath, str(self.thread_number)], stdout=PIPE, stderr=PIPE)
             procs[self.thread_number] = proc
             changeProcsLock.release()
             output = proc.communicate()[0].decode("utf-8")
             if kill_flag:
+                break
+            if proc.returncode != 0:
+                print("Error encountered whilst scoring and fitting a model, please enter quit and reload the search")
+                global kill_flag
+                kill_flag = True
                 break
             acc = float(output)
             writePickleLock.acquire()
