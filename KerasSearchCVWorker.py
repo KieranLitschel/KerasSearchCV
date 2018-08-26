@@ -40,9 +40,9 @@ model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, ve
 if tensorboard_on:
     tensorboard = TensorBoard(log_dir='TensorBoard/KerasSearchCV', histogram_freq=0,
                               write_graph=True, write_images=True)
-    model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard], verbose=1)
+    model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard])
 else:
-    model.fit(trainX, trainY, verbose=1)
+    model.fit(trainX, trainY)
 acc = model.score(testX, testY)
 
 sys.stdout.write(str(acc))
