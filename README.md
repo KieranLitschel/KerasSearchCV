@@ -47,6 +47,7 @@ Next we need to call the instances method create_new, and supply it the follow a
 * total_memory - The fraction of memory on the GPU that should be allocated to the search, note if you get an error messages whose traceback starts "CUBLAS_STATUS_ALLOC_FAILED", you have set the fraction too high, and should try a lower number.
 * seed - The seed passed to make results repeatable, by default it is 0
 * validX & validY - Pass your own validation set if you want to train on the whole testing set (also make sure to set CV to 1), otherwise leave these as None
+* tensorboard_on - Set this to true if you would like to enable tensorboard
 
 Finally we need to call the instances method start, which starts the search. If at any point you want to quit the search simply type "quit" and press enter. Also note that once the search has finished, you will be informed, and then will need to enter quit to kill all the threads.
 
