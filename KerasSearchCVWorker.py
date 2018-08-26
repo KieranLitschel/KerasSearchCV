@@ -47,7 +47,7 @@ if tensorboard_on:
             nice_val = func_comps[1]
         else:
             nice_val = str(job[key])
-            nice_sub_folder += key + "_" + nice_val + "_"
+        nice_sub_folder += key + "_" + nice_val + "_"
     nice_folder += "/"
     for c in nice_sub_folder:
         if c == ".":
@@ -56,7 +56,7 @@ if tensorboard_on:
             c = "_NEGATIVE"
         nice_folder += c
     if toDo.cv != 1:
-        nice_folder += "/" + str(fold)
+        nice_folder += "/fold_" + str(fold)
     tensorboard = TensorBoard(log_dir='/KerasSearchCV/' + nice_folder + "/", histogram_freq=0,
                               write_graph=True, write_images=True)
     model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard])
