@@ -38,7 +38,7 @@ tensorboard_on = toDo.tensorboard_on
 
 model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, verbose=0)
 if tensorboard_on:
-    tensorboard = TensorBoard(log_dir='TensorBoard/KerasSearchCV', histogram_freq=0,
+    tensorboard = TensorBoard(log_dir='/KerasSearchCV/', histogram_freq=0,
                               write_graph=True, write_images=True)
     model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard])
 else:
