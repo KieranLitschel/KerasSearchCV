@@ -38,7 +38,7 @@ tensorboard_on = toDo.tensorboard_on
 
 nice_job_name = ""
 for key in job.keys():
-    if job[key][0] == "<" and job[key][1] == ">":
+    if str(job[key])[0] == "<" and str(job[key])[1] == ">":
         func_comps = job[key].split(" ")
         nice_val = func_comps[1]
     else:
