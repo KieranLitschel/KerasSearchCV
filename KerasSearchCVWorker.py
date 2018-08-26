@@ -52,9 +52,9 @@ if tensorboard_on:
     nice_folder += "/"
     for c in nice_sub_folder:
         if c == ".":
-            c = "POINT"
+            c = "_POINT_"
         elif c == "-":
-            c = "NEGATIVE"
+            c = "_NEGATIVE_"
         nice_folder += c
     if toDo.cv != 1:
         nice_folder += "/fold_" + str(fold)
