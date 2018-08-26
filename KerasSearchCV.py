@@ -254,7 +254,7 @@ class Host:
                 jobs = list(ParameterGrid(param_grid))
             elif search_type == 'random':
                 jobs = list(ParameterSampler(param_grid, iterations, seed))
-            toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, total_memory, seed, validX, validY)
+            toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, total_memory, seed, validX, validY, tensorboard_on)
             with open(self.dillPath, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             self.thread_count = threads
