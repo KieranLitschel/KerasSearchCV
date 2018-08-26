@@ -3,6 +3,7 @@ import tensorflow.keras as keras
 import os
 import sys
 import dill
+from tensorflow.keras.callbacks import TensorBoard
 
 additional_import_file = sys.argv[1]
 additional_import = sys.argv[2]
@@ -33,9 +34,15 @@ keras.backend.set_session(sess)
 job, fold = toDo.getJob(thread_number)
 trainX, trainY, testX, testY = toDo.getTrainTest(fold)
 model_constructor = toDo.model_constructor
+tensorboard_on = toDo.tensorboard_on
 
 model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, verbose=0)
-model.fit(trainX, trainY)
+if tensorboard_on:
+    tensorboard = TensorBoard(log_dir='TensorBoard/KerasSearchCV', histogram_freq=0,
+                              write_graph=True, write_images=True)
+    model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard], verbose=1)
+else:
+    model.fit(trainX, trainY, verbose=1)
 acc = model.score(testX, testY)
 
 sys.stdout.write(str(acc))

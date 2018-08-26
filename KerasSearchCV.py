@@ -15,7 +15,7 @@ from sklearn.model_selection import ParameterSampler
 
 class ToDo:
     def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, total_memory=0.8, seed=0, validX=None,
-                 validY=None):
+                 validY=None, tensorboard_on=False):
         self.model_constructor = model_constructor
         self.cv = cv
         self.trainX = trainX
@@ -28,6 +28,7 @@ class ToDo:
         self.total_memory = total_memory
         self.threads = threads
         self.memory_frac = total_memory / threads
+        self.tensorboard_on = tensorboard_on
 
         self.job_str_tracker = []
         for job in jobs:
@@ -223,7 +224,8 @@ class Host:
                 print("Error: Could not find the file at " + path)
 
     def create_new(self, trainX, trainY, model_constructor, search_type, param_grid,
-                   iterations=None, cv=4, threads=2, total_memory=0.8, seed=0, validX=None, validY=None):
+                   iterations=None, cv=4, threads=2, total_memory=0.8, seed=0, validX=None, validY=None,
+                   tensorboard_on=False):
         create = False
         try:
             with open(self.dillPath, 'rb') as handle:
