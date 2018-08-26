@@ -4,6 +4,7 @@ import os
 import sys
 import dill
 from tensorflow.keras.callbacks import TensorBoard
+import datetime
 
 additional_import_file = sys.argv[1]
 additional_import = sys.argv[2]
@@ -36,18 +37,27 @@ trainX, trainY, testX, testY = toDo.getTrainTest(fold)
 model_constructor = toDo.model_constructor
 tensorboard_on = toDo.tensorboard_on
 
-nice_job_name = ""
-for key in job.keys():
-    if str(job[key])[0] == "<" and str(job[key])[1] == ">":
-        func_comps = job[key].split(" ")
-        nice_val = func_comps[1]
-    else:
-        nice_val = str(job[key])
-    nice_job_name += nice_val + "_"
-
 model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, verbose=0)
 if tensorboard_on:
-    tensorboard = TensorBoard(log_dir='/KerasSearchCV/'+nice_job_name+"/", histogram_freq=0,
+    nice_folder = toDo.tensorboard_folder
+    nice_sub_folder = ""
+    for key in job.keys():
+        if str(job[key])[0] == "<" and str(job[key])[1] == ">":
+            func_comps = job[key].split(" ")
+            nice_val = func_comps[1]
+        else:
+            nice_val = str(job[key])
+            nice_sub_folder += key + "_" + nice_val + "_"
+    nice_folder += "/"
+    for c in nice_sub_folder:
+        if c == ".":
+            c = "_POINT"
+        elif c == "-":
+            c = "_NEGATIVE"
+        nice_folder += c
+    if toDo.cv != 1:
+        nice_folder += "/" + str(fold)
+    tensorboard = TensorBoard(log_dir='/KerasSearchCV/' + nice_folder + "/", histogram_freq=0,
                               write_graph=True, write_images=True)
     model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard])
 else:

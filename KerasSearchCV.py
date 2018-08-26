@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 from subprocess import PIPE
+import datetime
 
 import dill
 import numpy as np
@@ -29,6 +30,13 @@ class ToDo:
         self.threads = threads
         self.memory_frac = total_memory / threads
         self.tensorboard_on = tensorboard_on
+        self.tensorboard_folder = ""
+
+        if tensorboard_on:
+            for c in str(datetime.datetime.now()):
+                if c == "-" or c == " " or c == "." or c == ":":
+                    c = "_"
+                self.tensorboard_folder += c
 
         self.job_str_tracker = []
         for job in jobs:
