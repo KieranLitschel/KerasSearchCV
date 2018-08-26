@@ -42,8 +42,9 @@ if tensorboard_on:
     nice_folder = toDo.tensorboard_folder
     nice_sub_folder = ""
     for key in job.keys():
-        if str(job[key])[0] == "<" and str(job[key])[-1] == ">":
-            func_comps = job[key].split(" ")
+        val = str(job[key])
+        if val[0] == "<" and val[-1] == ">":
+            func_comps = val.split(" ")
             nice_val = func_comps[1]
         else:
             nice_val = str(job[key])
