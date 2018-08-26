@@ -36,9 +36,18 @@ trainX, trainY, testX, testY = toDo.getTrainTest(fold)
 model_constructor = toDo.model_constructor
 tensorboard_on = toDo.tensorboard_on
 
+nice_job_name = ""
+for key in job.keys():
+    if job[key][0] == "<" and job[key][1] == ">":
+        func_comps = job[key].split(" ")
+        nice_val = func_comps[1]
+    else:
+        nice_val = str(job[key])
+    nice_job_name += nice_val + "_"
+
 model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, verbose=0)
 if tensorboard_on:
-    tensorboard = TensorBoard(log_dir='/KerasSearchCV/', histogram_freq=0,
+    tensorboard = TensorBoard(log_dir='/KerasSearchCV/'+nice_job_name+"/", histogram_freq=0,
                               write_graph=True, write_images=True)
     model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard])
 else:
