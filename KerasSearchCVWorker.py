@@ -42,7 +42,7 @@ if tensorboard_on:
     nice_folder = toDo.tensorboard_folder
     nice_sub_folder = ""
     for key in job.keys():
-        if str(job[key])[0] == "<" and str(job[key])[1] == ">":
+        if str(job[key])[0] == "<" and str(job[key])[-1] == ">":
             func_comps = job[key].split(" ")
             nice_val = func_comps[1]
         else:
@@ -51,9 +51,9 @@ if tensorboard_on:
     nice_folder += "/"
     for c in nice_sub_folder:
         if c == ".":
-            c = "_POINT"
+            c = "POINT"
         elif c == "-":
-            c = "_NEGATIVE"
+            c = "NEGATIVE"
         nice_folder += c
     if toDo.cv != 1:
         nice_folder += "/fold_" + str(fold)
