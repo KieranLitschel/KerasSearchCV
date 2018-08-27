@@ -5,6 +5,7 @@ import sys
 import dill
 from tensorflow.keras.callbacks import TensorBoard
 import pathlib
+from sklearn.metrics import accuracy_score
 
 additional_import_file = sys.argv[1]
 additional_import = sys.argv[2]
@@ -81,6 +82,12 @@ if tensorboard_on:
               initial_epoch=initial_epoch)
 else:
     model.fit(trainX, trainY, initial_epoch=initial_epoch, callbacks=[cp_callback])
-acc = model.score(testX, testY)
+    
+# When the model is loaded it loses its scikit-learn wrapper, meaning we have to score accuracy slightly differently
+if initial_epoch == 0:
+    acc = model.score(testX, testY)
+else:
+    predTestY = model.predict(testX)
+    acc = accuracy_score(testY, predTestY)
 
 sys.stdout.write(str(acc))
