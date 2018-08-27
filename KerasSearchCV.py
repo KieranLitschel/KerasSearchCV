@@ -222,7 +222,7 @@ class Host:
         writePickleLock = threading.Lock()
         global changeProcsLock
         changeProcsLock = threading.Lock()
-        self.curr_dir = curr_dir
+        self.curr_dir = curr_dir + "\\KerasSearchCV\\"
         self.dillPath = pickle_file
         self.full_dill_path = self.curr_dir + "\\" + self.dillPath
         self.file_found = False
