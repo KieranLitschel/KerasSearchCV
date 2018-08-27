@@ -15,8 +15,8 @@ from sklearn.model_selection import ParameterSampler
 
 
 class ToDo:
-    def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, total_memory=0.8, seed=0, validX=None,
-                 validY=None, tensorboard_on=False):
+    def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, curr_dir, total_memory=0.8, seed=0,
+                 validX=None, validY=None, tensorboard_on=False, epoch_save_period=5):
         self.model_constructor = model_constructor
         self.cv = cv
         self.trainX = trainX
@@ -29,8 +29,10 @@ class ToDo:
         self.total_memory = total_memory
         self.threads = threads
         self.memory_frac = total_memory / threads
+        self.curr_dir = curr_dir
         self.tensorboard_on = tensorboard_on
         self.tensorboard_folder = ""
+        self.epoch_save_period = epoch_save_period
 
         if tensorboard_on:
             for c in str(datetime.datetime.now()):
@@ -146,6 +148,9 @@ class ToDo:
             testY = self.validY
         return trainX, trainY, testX, testY
 
+    def getFullPath(self, relativePath):
+        return self.curr_dir + "\\" + relativePath
+
 
 class WorkerThread(threading.Thread):
     def __init__(self, thread_number, dillPath):
@@ -210,33 +215,36 @@ class WorkerThread(threading.Thread):
 
 
 class Host:
-    def __init__(self, path="KSCV.dill", reload=False):
+    def __init__(self, curr_dir="", pickle_file="KSCV.dill", reload=False):
         global dir_path
         dir_path = os.path.dirname(os.path.realpath(__file__))
         global writePickleLock
         writePickleLock = threading.Lock()
         global changeProcsLock
         changeProcsLock = threading.Lock()
-        self.dillPath = path
+        self.curr_dir = curr_dir
+        self.dillPath = pickle_file
+        self.full_dill_path = self.curr_dir + "\\" + self.dillPath
         self.file_found = False
         if reload:
             try:
-                with open(self.dillPath, 'rb') as handle:
+                with open(self.full_dill_path, 'rb') as handle:
                     toDo = dill.load(handle)
                 toDo.prepare_for_reload()
+                toDo.curr_path = self.curr_dir
                 self.thread_count = toDo.threads
-                with open(self.dillPath, 'wb') as handle:
+                with open(self.full_dill_path, 'wb') as handle:
                     dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
                 self.file_found = True
             except FileNotFoundError:
-                print("Error: Could not find the file at " + path)
+                print("Error: Could not find the file at " + self.full_dill_path)
 
     def create_new(self, trainX, trainY, model_constructor, search_type, param_grid,
                    iterations=None, cv=4, threads=2, total_memory=0.8, seed=0, validX=None, validY=None,
-                   tensorboard_on=False):
+                   tensorboard_on=False, epoch_save_period=5):
         create = False
         try:
-            with open(self.dillPath, 'rb') as handle:
+            with open(self.full_dill_path, 'rb') as handle:
                 toDo = dill.load(handle)
         except FileNotFoundError:
             create = True
@@ -262,8 +270,9 @@ class Host:
                 jobs = list(ParameterGrid(param_grid))
             elif search_type == 'random':
                 jobs = list(ParameterSampler(param_grid, iterations, seed))
-            toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, total_memory, seed, validX, validY, tensorboard_on)
-            with open(self.dillPath, 'wb') as handle:
+            toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, self.curr_dir, total_memory, seed, validX,
+                        validY, tensorboard_on, epoch_save_period)
+            with open(self.full_dill_path, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             self.thread_count = threads
             self.file_found = True
@@ -271,10 +280,10 @@ class Host:
     def change_threads_memory(self, threads=None, total_memory=None):
         if self.file_found is True:
             if total_memory is not None or threads is not None:
-                with open(self.dillPath, 'rb') as handle:
+                with open(self.full_dill_path, 'rb') as handle:
                     toDo = dill.load(handle)
                 toDo.setNumberOfThreads(threads, total_memory)
-                with open(self.dillPath, 'wb') as handle:
+                with open(self.full_dill_path, 'wb') as handle:
                     dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             if threads is not None:
                 self.thread_count = threads
@@ -290,7 +299,7 @@ class Host:
             kill_flag = False
             try:
                 for thread_no in range(0, self.thread_count):
-                    thread = WorkerThread(thread_no, self.dillPath)
+                    thread = WorkerThread(thread_no, self.full_dill_path)
                     thread.start()
                     threads.append(thread)
                 msg = ""
@@ -313,7 +322,7 @@ class Host:
 
     def getResults(self):
         if self.file_found is True:
-            with open(self.dillPath, 'rb') as handle:
+            with open(self.full_dill_path, 'rb') as handle:
                 toDo = dill.load(handle)
             return toDo.results
         else:
