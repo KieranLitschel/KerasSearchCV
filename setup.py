@@ -20,5 +20,6 @@ setup(
                       'tensorflow-gpu==1.10.0',
                       'termcolor==1.1.0',
                       'Werkzeug==0.14.1',
-                      'dill==0.2.8.2']
+                      'dill==0.2.8.2',
+                      "h5py==2.8.0"]
 )
