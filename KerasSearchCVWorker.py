@@ -65,7 +65,7 @@ if len(checkpoints) == 0:
     initial_epoch = 0
     model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, verbose=0)
 else:
-    last_checkpoint = checkpoints[-1]
+    last_checkpoint = checkpoints[-1]+".ckpt"
     model = keras.models.load_model(last_checkpoint)
     initial_epoch = int(str(last_checkpoint).split("-")[1].split(".")[0])
 
