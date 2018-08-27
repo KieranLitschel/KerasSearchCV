@@ -58,7 +58,7 @@ if toDo.cv != 1:
     nice_folder += "\\fold_" + str(fold)
 nice_folder += "\\"
 
-checkpoints = pathlib.Path(nice_folder).glob("*.index")
+checkpoints = pathlib.Path(nice_folder).glob("*.ckpt")
 checkpoints = sorted(checkpoints, key=lambda cp: cp.stat().st_mtime)
 checkpoints = [cp.with_suffix('') for cp in checkpoints]
 if len(checkpoints) == 0:
