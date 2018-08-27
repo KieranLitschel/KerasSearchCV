@@ -67,7 +67,7 @@ if len(checkpoints) == 0:
 else:
     last_checkpoint = str(checkpoints[-1]) + ".ckpt"
     model = keras.models.load_model(last_checkpoint)
-    initial_epoch = int(last_checkpoint.split("-")[1].split(".")[0])
+    initial_epoch = int(str(os.path.basename(last_checkpoint)).split("-")[1].split(".")[0])
 
 checkpoint_path = nice_folder + "cp-{epoch:04d}.ckpt"
 cp_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
