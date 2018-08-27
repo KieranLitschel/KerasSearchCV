@@ -75,15 +75,21 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
                                                  save_weights_only=False,
                                                  verbose=0, period=toDo.epoch_save_period)
 
+# When the model is loaded it only retains weights and topology, meaning we have to treat the model slightly different
 if tensorboard_on:
     tensorboard = TensorBoard(log_dir=nice_folder, histogram_freq=0,
                               write_graph=True, write_images=True)
-    model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard, cp_callback],
-              initial_epoch=initial_epoch)
+    if initial_epoch == 0:
+        model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard, cp_callback])
+    else:
+        model.fit(trainX, trainY, batch_size=job['batch_size'], epochs=job['epochs'],
+                  callbacks=[tensorboard, cp_callback])
 else:
-    model.fit(trainX, trainY, initial_epoch=initial_epoch, callbacks=[cp_callback])
-    
-# When the model is loaded it loses its scikit-learn wrapper, meaning we have to score accuracy slightly differently
+    if initial_epoch == 0:
+        model.fit(trainX, trainY, callbacks=[cp_callback])
+    else:
+        model.fit(trainX, trainY, batch_size=job['batch_size'], epochs=job['epochs'], callbacks=[cp_callback])
+
 if initial_epoch == 0:
     acc = model.score(testX, testY)
 else:
