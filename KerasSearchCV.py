@@ -223,8 +223,10 @@ class Host:
         global changeProcsLock
         changeProcsLock = threading.Lock()
         self.curr_dir = curr_dir + "\\KerasSearchCV\\"
+        if not os.path.isdir(self.curr_dir):
+            os.makedirs(self.curr_dir)
         self.dillPath = pickle_file
-        self.full_dill_path = self.curr_dir + "\\" + self.dillPath
+        self.full_dill_path = self.curr_dir + self.dillPath
         self.file_found = False
         if reload:
             try:
