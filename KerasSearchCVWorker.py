@@ -6,6 +6,7 @@ import dill
 from tensorflow.keras.callbacks import TensorBoard
 import pathlib
 from sklearn.metrics import accuracy_score
+from numpy import argmax
 
 additional_import_file = sys.argv[1]
 additional_import = sys.argv[2]
@@ -95,6 +96,6 @@ if initial_epoch == 0:
     acc = model.score(testX, testY)
 else:
     predTestY = model.predict(testX)
-    acc = accuracy_score(testY, predTestY)
+    acc = accuracy_score(argmax(testY, axis=1), argmax(predTestY, axis=1))
 
 sys.stdout.write(str(acc))
