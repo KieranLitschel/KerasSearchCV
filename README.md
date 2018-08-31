@@ -59,6 +59,12 @@ Next we need to call the instances method create_new, and supply it the follow a
 * validX & validY - Pass your own validation set if you want to train on the whole testing set (also make sure to set CV to 1), otherwise leave these as None
 * tensorboard_on - Set this to true if you would like to enable tensorboard
 * epoch_save_period - How often (measured in epochs) the search should create a checkpoint when training each model. Note that if you are also using Tensorboard, if this value is set to greater than 1, when you resume the search the Tensorboard graph will have an overlap as it will most likely have recorded epochs since the save. If you would like to avoid overlaps entirely set the epoch_save_period to 1.
+* custom_object_scope - This is necessary if you are using custom objects in your network, e.g. activation functions, standard keras activation functions do not need to be defined within the custom scope, but ones not defined in keras such as leaky relu do need to be. You will know if you need a custom_object_scope if you load the model or try to continue the search and it comes up with an error message like "ValueError: Unknown activation function". If you're not sure whether you'll need one, you can always start the search, and later if the search fails when you try to continue it as you need a custom scope, you can create a custom object scope and set it for the search using the setCustomObjectScope method in the Host object. An example of how to create a custom scope object is included below.
+``` python
+import tensorflow as tf
+from tensorflow.keras.utils import CustomObjectScope
+custom_object_scope = CustomObjectScope({'leaky_relu': tf.nn.relu})
+```
 
 Finally we need to call the instances method start, which starts the search. If at any point you want to quit the search simply type "quit" and press enter. Also note that once the search has finished, you will be informed, and then will need to enter quit to kill all the threads.
 
