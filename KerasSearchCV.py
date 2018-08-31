@@ -16,7 +16,7 @@ from sklearn.model_selection import ParameterSampler
 
 class ToDo:
     def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, curr_dir, total_memory=0.8, seed=0,
-                 validX=None, validY=None, tensorboard_on=False, epoch_save_period=5):
+                 validX=None, validY=None, tensorboard_on=False, epoch_save_period=5, custom_object_scope=None):
         self.model_constructor = model_constructor
         self.cv = cv
         self.trainX = trainX
@@ -33,6 +33,7 @@ class ToDo:
         self.tensorboard_on = tensorboard_on
         self.tensorboard_folder = ""
         self.epoch_save_period = epoch_save_period
+        self.custom_object_scope = custom_object_scope
 
         if tensorboard_on:
             for c in str(datetime.datetime.now()):
@@ -243,7 +244,7 @@ class Host:
 
     def create_new(self, trainX, trainY, model_constructor, search_type, param_grid,
                    iterations=None, cv=4, threads=2, total_memory=0.8, seed=0, validX=None, validY=None,
-                   tensorboard_on=False, epoch_save_period=5):
+                   tensorboard_on=False, epoch_save_period=5, custom_object_scope=None):
         create = False
         try:
             with open(self.full_dill_path, 'rb') as handle:
@@ -273,7 +274,7 @@ class Host:
             elif search_type == 'random':
                 jobs = list(ParameterSampler(param_grid, iterations, seed))
             toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, self.curr_dir, total_memory, seed, validX,
-                        validY, tensorboard_on, epoch_save_period)
+                        validY, tensorboard_on, epoch_save_period, custom_object_scope)
             with open(self.full_dill_path, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             self.thread_count = threads

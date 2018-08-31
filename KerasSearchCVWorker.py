@@ -68,7 +68,11 @@ if len(checkpoints) == 0:
     model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, verbose=0)
 else:
     last_checkpoint = str(checkpoints[-1]) + ".ckpt"
-    model = keras.models.load_model(last_checkpoint)
+    if toDo.custom_object_scope is None:
+        model = keras.models.load_model(last_checkpoint)
+    else:
+        with toDo.custom_object_scope:
+            model = keras.models.load_model(last_checkpoint)
     initial_epoch = int(str(os.path.basename(last_checkpoint)).split("-")[1].split(".")[0])
 
 checkpoint_path = nice_folder + "cp-{epoch:04d}.ckpt"
