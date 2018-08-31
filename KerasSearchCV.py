@@ -323,6 +323,16 @@ class Host:
         else:
             print("Error: You must create or load a search before doing this")
 
+    def setCustomObjectScope(self, custom_object_scope):
+        if self.file_found is True:
+            with open(self.full_dill_path, 'rb') as handle:
+                toDo = dill.load(handle)
+            toDo.custom_object_scope = custom_object_scope
+            with open(self.full_dill_path, 'wb') as handle:
+                dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
+        else:
+            print("Error: You must create or load a search before doing this")
+
     def getResults(self):
         if self.file_found is True:
             with open(self.full_dill_path, 'rb') as handle:
