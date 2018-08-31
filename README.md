@@ -22,9 +22,21 @@ In addition you can manually kill the search by typing "quit" in the command lin
 
 # How to install
 
-To install, simply use "python -m pip install git+https://github.com/KieranLitschel/KerasSearchCV.git".
+To install, simply use the following pip command:
+
+```
+pip install git+https://github.com/KieranLitschel/KerasSearchCV.git
+```
 
 # How to use
+
+## Important things to note before using
+
+* The folder structure tends to create long folder paths, this can cause strange behaviour in Windows 10 where file paths are limited to 250 characters. You can partially fix this by carry out the simple regedit described [here](https://www.howtogeek.com/266621/how-to-make-windows-10-accept-file-paths-over-260-characters/) but even then you can operate on these folders through command line as file explorer still does not support long folder paths. I recommend you use "move" to rename the folder which described the hyperparameters, for example if you are changing learning rate and epochs you could use the following code to change the folder name, and then create a text document within it describing the full hyperaparameters. Importantly remember to only change this once the search has been completed, as changing it prior will intefere with the program, and TensorBoard and Python do not have any issues with long file paths provided you have done the regedit.
+
+```
+move "L2_False_activation_relu_batch_size_756_dropout_rate_0_POINT_3_epochs_3000_learning_rate_0_POINT_0001_lmbda_1e_NEGATIVE_09_neurons_60_" "epochs_3000_learning_rate_0_POINT_0001_"
+```
 
 ## Creating a new search
 
