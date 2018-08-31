@@ -78,7 +78,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
 
 # When the model is loaded it only retains weights and topology, meaning we have to treat the model slightly different
 if tensorboard_on:
-    tensorboard = TensorBoard(log_dir=nice_folder, histogram_freq=0,
+    tensorboard = TensorBoard(log_dir=nice_folder, histogram_freq=toDo.epoch_save_period,
                               write_graph=True, write_images=True)
     if initial_epoch == 0:
         model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard, cp_callback])
