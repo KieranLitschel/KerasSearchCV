@@ -88,13 +88,13 @@ if tensorboard_on:
         model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard, cp_callback])
     else:
         model.fit(trainX, trainY, validation_data=(testX, testY), batch_size=job['batch_size'], epochs=job['epochs'],
-                  initial_epoch=initial_epoch, callbacks=[tensorboard, cp_callback])
+                  initial_epoch=initial_epoch, callbacks=[tensorboard, cp_callback], verbose=0)
 else:
     if initial_epoch == 0:
         model.fit(trainX, trainY, callbacks=[cp_callback])
     else:
         model.fit(trainX, trainY, batch_size=job['batch_size'], epochs=job['epochs'], initial_epoch=initial_epoch,
-                  callbacks=[cp_callback])
+                  callbacks=[cp_callback], verbose=0)
 
 if initial_epoch == 0:
     acc = model.score(testX, testY)
