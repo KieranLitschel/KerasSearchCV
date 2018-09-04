@@ -104,11 +104,11 @@ class ToDo:
                 std = np.std(accs)
                 self.results[str(job)] = {'mean': mean, 'std': std, 'accs': accs}
                 print(
-                    "---Got mean of " + ("%.3f" % mean) + " and std of " + ("%.3f" % std) + " with parameters " + str(
+                    "---Got mean of " + ("%.6f" % mean) + " and std of " + ("%.6f" % std) + " with parameters " + str(
                         job))
             else:
                 self.results[str(job)] = {'acc': self.accuracies[str(job)][0]}
-                print(("---Got accuracy of %.3f" % self.accuracies[str(job)][0]) + " with parameters " + str(job))
+                print(("---Got accuracy of %.6f" % self.accuracies[str(job)][0]) + " with parameters " + str(job))
         self.doing[thread_number] = None
 
     def prepare_for_reload(self):
