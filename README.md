@@ -65,6 +65,7 @@ import tensorflow as tf
 from tensorflow.keras.utils import CustomObjectScope
 custom_object_scope = CustomObjectScope({'leaky_relu': tf.nn.relu})
 ```
+* histogram_freq - If you are using Tensorboard, set the frequency of how often you would like histogram to be reported, by default this is 0, which means it will not report them. Note that reporting them will lead to a drop in performance, and reporting them frequently can lead to very large log files.
 
 Finally we need to call the instances method start, which starts the search. If at any point you want to quit the search simply type "quit" and press enter. Also note that once the search has finished, you will be informed, and then will need to enter quit to kill all the threads.
 
