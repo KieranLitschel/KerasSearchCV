@@ -63,7 +63,7 @@ Next we need to call the instances method create_new, and supply it the follow a
 ``` python
 import tensorflow as tf
 from tensorflow.keras.utils import CustomObjectScope
-custom_object_scope = CustomObjectScope({'leaky_relu': tf.nn.relu})
+custom_object_scope = CustomObjectScope({'leaky_relu': tf.nn.leaky_relu})
 ```
 * histogram_freq - If you are using Tensorboard, set the frequency of how often you would like histogram to be reported, by default this is 0, which means it will not report them. Note that reporting them will lead to a drop in performance, and reporting them frequently can lead to very large log files.
 
