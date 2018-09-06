@@ -28,6 +28,8 @@ while not loaded:
         loaded = True
     except dill.UnpicklingError as e:
         loaded = False
+    except EOFError as e:
+        loaded = False
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 

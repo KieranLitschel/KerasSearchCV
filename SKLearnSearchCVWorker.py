@@ -12,6 +12,8 @@ while not loaded:
         loaded = True
     except dill.UnpicklingError as e:
         loaded = False
+    except EOFError as e:
+        loaded = False
 
 seed = toDo.seed
 
