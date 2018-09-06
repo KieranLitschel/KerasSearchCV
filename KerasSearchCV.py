@@ -17,7 +17,7 @@ from sklearn.model_selection import ParameterSampler
 class ToDo:
     def __init__(self, model_constructor, cv, jobs, trainX, trainY, threads, curr_dir, total_memory=0.8, seed=0,
                  validX=None, validY=None, tensorboard_on=False, epoch_save_period=5, custom_object_scope=None,
-                 histogram_freq=0):
+                 histogram_freq=0, library="Keras"):
         self.model_constructor = model_constructor
         self.cv = cv
         self.trainX = trainX
@@ -36,12 +36,13 @@ class ToDo:
         self.epoch_save_period = epoch_save_period
         self.custom_object_scope = custom_object_scope
         self.histogram_freq = histogram_freq
+        self.library = library
+        self.raw_results = []
 
-        if tensorboard_on:
-            for c in str(datetime.datetime.now()):
-                if c == "-" or c == " " or c == "." or c == ":":
-                    c = "_"
-                self.tensorboard_folder += c
+        for c in str(datetime.datetime.now()):
+            if c == "-" or c == " " or c == "." or c == ":":
+                c = "_"
+            self.tensorboard_folder += c
 
         self.job_str_tracker = []
         for job in jobs:
@@ -98,17 +99,26 @@ class ToDo:
         job, _ = self.getJob(thread_number)
         self.accuracies[str(job)].append(accuracy)
         if len(self.accuracies[str(job)]) == self.cv:
+            result = []
+            for key in job.keys():
+                result.append(str(job[key]))
             if self.cv != 1:
                 accs = np.array(self.accuracies[str(job)])
                 mean = np.average(accs)
                 std = np.std(accs)
+                for acc in accs:
+                    result.append(str(acc))
+                result.append(str(std))
+                result.append(str(mean))
                 self.results[str(job)] = {'mean': mean, 'std': std, 'accs': accs}
                 print(
                     "---Got mean of " + ("%.6f" % mean) + " and std of " + ("%.6f" % std) + " with parameters " + str(
                         job))
             else:
                 self.results[str(job)] = {'acc': self.accuracies[str(job)][0]}
+                result.append(str(self.accuracies[str(job)][0]))
                 print(("---Got accuracy of %.6f" % self.accuracies[str(job)][0]) + " with parameters " + str(job))
+            self.raw_results.append(result)
         self.doing[thread_number] = None
 
     def prepare_for_reload(self):
@@ -170,6 +180,10 @@ class WorkerThread(threading.Thread):
         additional_import_dir = toDo.additional_import_dir
         additional_import = toDo.additional_import
         nextJob = toDo.setNextJob(self.thread_number)
+        if toDo.library == "Keras":
+            worker_path = "KerasSearchCVWorker.py"
+        elif toDo.library == "SKLearn":
+            worker_path = "SKLearnSearchCVWorker.py"
         with open(self.dillPath, 'wb') as handle:
             dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
         del toDo
@@ -186,7 +200,7 @@ class WorkerThread(threading.Thread):
             print("-Starting fold " + str(nextJob[1] + 1) + " of job " + str(nextJob[0]))
             start = time.time()
             proc = subprocess.Popen(
-                [self.pythonPath, os.path.join(dir_path, "KerasSearchCVWorker.py"), additional_import_dir,
+                [self.pythonPath, os.path.join(dir_path, worker_path), additional_import_dir,
                  additional_import,
                  self.dillPath, str(self.thread_number)], stdout=PIPE, stderr=PIPE)
             procs[self.thread_number] = proc
@@ -245,7 +259,7 @@ class Host:
                 print("Error: Could not find the file at " + self.full_dill_path)
 
     def create_new(self, trainX, trainY, model_constructor, search_type, param_grid,
-                   iterations=None, cv=4, threads=2, total_memory=0.8, seed=0, validX=None, validY=None,
+                   iterations=10, cv=4, threads=2, total_memory=0.8, seed=0, validX=None, validY=None,
                    tensorboard_on=False, epoch_save_period=5, custom_object_scope=None, histogram_freq=0):
         create = False
         try:
@@ -276,7 +290,44 @@ class Host:
             elif search_type == 'random':
                 jobs = list(ParameterSampler(param_grid, iterations, seed))
             toDo = ToDo(model_constructor, cv, jobs, trainX, trainY, threads, self.curr_dir, total_memory, seed, validX,
-                        validY, tensorboard_on, epoch_save_period, custom_object_scope, histogram_freq)
+                        validY, tensorboard_on, epoch_save_period, custom_object_scope, histogram_freq, library="Keras")
+            with open(self.full_dill_path, 'wb') as handle:
+                dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
+            self.thread_count = threads
+            self.file_found = True
+
+    def create_new_sklearn(self, trainX, trainY, raw_classifier, search_type, param_grid, iterations=10, cv=4,
+                           threads=2, seed=0, validX=None, validY=None):
+        create = False
+        try:
+            with open(self.full_dill_path, 'rb') as handle:
+                toDo = dill.load(handle)
+        except FileNotFoundError:
+            create = True
+        if create is False:
+            msg = ""
+            while msg != "y" and msg != "n":
+                print(
+                    "A file with that name already exists, would you like to overwrite it? Answer y for yes and n for no.")
+                msg = input()
+                if msg == 'y':
+                    print("Overwriting the old file.")
+                    create = True
+                    break
+                elif msg == 'n':
+                    print(
+                        "The file will not be overwritten, please create a new object or change the path attribute in "
+                        "this object to point to a different file before calling this method again.")
+                    break
+        if create:
+            if search_type == 'custom':
+                jobs = param_grid
+            elif search_type == 'grid':
+                jobs = list(ParameterGrid(param_grid))
+            elif search_type == 'random':
+                jobs = list(ParameterSampler(param_grid, iterations, seed))
+            toDo = ToDo(raw_classifier, cv, jobs, trainX, trainY, threads, self.curr_dir, seed=seed, validX=validX,
+                        validY=validY, library="SKLearn")
             with open(self.full_dill_path, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
             self.thread_count = threads
@@ -340,5 +391,29 @@ class Host:
             with open(self.full_dill_path, 'rb') as handle:
                 toDo = dill.load(handle)
             return toDo.results
+        else:
+            print("Error: You must create or load a search before doing this")
+
+    def resultsToCSV(self):
+        if self.file_found is True:
+            with open(self.full_dill_path, 'rb') as handle:
+                toDo = dill.load(handle)
+            lines = ""
+            for result in toDo.raw_results:
+                line = ""
+                for element in result:
+                    line += element + ","
+                line = line[0:len(line) - 1]
+                lines += line + "\n"
+            dateStr = ""
+            for c in str(datetime.datetime.now()):
+                if c == "-" or c == " " or c == "." or c == ":":
+                    c = "_"
+                dateStr += c
+            with open(toDo.curr_dir + 'SearchResults_%s.csv' % dateStr, 'w') as f:
+                f.write(lines)
+                f.close()
+            print(
+                "Created CSV file with results in current directory with file name %s" % 'SearchResults_%s.csv' % dateStr)
         else:
             print("Error: You must create or load a search before doing this")
