@@ -60,6 +60,12 @@ if toDo.cv != 1:
     nice_folder += "\\fold_" + str(fold)
 nice_folder += "\\"
 
+custom_object_scope = toDo.custom_object_scope
+epoch_save_period = toDo.epoch_save_period
+histogram_freq = toDo.historgram_freq
+
+del toDo
+
 checkpoints = pathlib.Path(nice_folder).glob("*.ckpt")
 checkpoints = sorted(checkpoints, key=lambda cp: cp.stat().st_mtime)
 checkpoints = [cp.with_suffix('') for cp in checkpoints]
@@ -68,21 +74,21 @@ if len(checkpoints) == 0:
     model = keras.wrappers.scikit_learn.KerasClassifier(model_constructor, **job, verbose=0)
 else:
     last_checkpoint = str(checkpoints[-1]) + ".ckpt"
-    if toDo.custom_object_scope is None:
+    if custom_object_scope is None:
         model = keras.models.load_model(last_checkpoint)
     else:
-        with toDo.custom_object_scope:
+        with custom_object_scope:
             model = keras.models.load_model(last_checkpoint)
     initial_epoch = int(str(os.path.basename(last_checkpoint)).split("-")[1].split(".")[0])
 
 checkpoint_path = nice_folder + "cp-{epoch:04d}.ckpt"
 cp_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
                                                  save_weights_only=False,
-                                                 verbose=0, period=toDo.epoch_save_period)
+                                                 verbose=0, period=epoch_save_period)
 
 # When the model is loaded it only retains weights and topology, meaning we have to treat the model slightly different
 if tensorboard_on:
-    tensorboard = TensorBoard(log_dir=nice_folder, histogram_freq=toDo.histogram_freq,
+    tensorboard = TensorBoard(log_dir=nice_folder, histogram_freq=histogram_freq,
                               write_graph=True, write_images=True)
     if initial_epoch == 0:
         model.fit(trainX, trainY, validation_data=(testX, testY), callbacks=[tensorboard, cp_callback])

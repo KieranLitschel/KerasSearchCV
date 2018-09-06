@@ -226,6 +226,7 @@ class WorkerThread(threading.Thread):
                 more_jobs = False
             with open(self.dillPath, 'wb') as handle:
                 dill.dump(toDo, handle, protocol=dill.HIGHEST_PROTOCOL, byref=False, recurse=True)
+            del toDo
             print("--Finished fold " + str(oldJob[1] + 1) + " of job " + str(oldJob[0]) + (
                     " it took %.1f minutes" % ((time.time() - start) / 60)))
             writePickleLock.release()
