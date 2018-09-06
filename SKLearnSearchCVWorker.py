@@ -13,6 +13,8 @@ job, fold = toDo.getJob(thread_number)
 trainX, trainY, testX, testY = toDo.getTrainTest(fold)
 raw_classifier = toDo.model_constructor
 
+del toDo
+
 model = raw_classifier(**job, random_state=seed)
 model.fit(trainX, trainY)
 acc = model.score(testX, testY)
