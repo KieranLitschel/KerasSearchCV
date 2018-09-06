@@ -1,5 +1,6 @@
 import sys
 import dill
+import time
 
 dillPath = sys.argv[3]
 thread_number = int(sys.argv[4])
@@ -12,8 +13,10 @@ while not loaded:
         loaded = True
     except dill.UnpicklingError as e:
         loaded = False
+        time.sleep(1)
     except EOFError as e:
         loaded = False
+        time.sleep(1)
 
 seed = toDo.seed
 

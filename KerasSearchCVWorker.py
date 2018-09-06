@@ -7,6 +7,7 @@ from tensorflow.keras.callbacks import TensorBoard
 import pathlib
 from sklearn.metrics import accuracy_score
 from numpy import argmax
+import time
 
 additional_import_file = sys.argv[1]
 additional_import = sys.argv[2]
@@ -28,8 +29,10 @@ while not loaded:
         loaded = True
     except dill.UnpicklingError as e:
         loaded = False
+        time.sleep(1)
     except EOFError as e:
         loaded = False
+        time.sleep(1)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
