@@ -20,8 +20,14 @@ if additional_import_file != '':
 
     importlib.import_module(additional_import)
 
-with open(dillPath, 'rb') as handle:
-    toDo = dill.load(handle)
+loaded = False
+while not loaded:
+    try:
+        with open(dillPath, 'rb') as handle:
+            toDo = dill.load(handle)
+        loaded = True
+    except dill.UnpicklingError as e:
+        loaded = False
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 

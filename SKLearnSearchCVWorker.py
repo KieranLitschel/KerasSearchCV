@@ -4,8 +4,14 @@ import dill
 dillPath = sys.argv[3]
 thread_number = int(sys.argv[4])
 
-with open(dillPath, 'rb') as handle:
-    toDo = dill.load(handle)
+loaded = False
+while not loaded:
+    try:
+        with open(dillPath, 'rb') as handle:
+            toDo = dill.load(handle)
+        loaded = True
+    except dill.UnpicklingError as e:
+        loaded = False
 
 seed = toDo.seed
 
