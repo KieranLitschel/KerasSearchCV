@@ -67,6 +67,13 @@ custom_object_scope = CustomObjectScope({'leaky_relu': tf.nn.leaky_relu})
 ```
 * histogram_freq - If you are using Tensorboard, set the frequency of how often you would like histogram to be reported, by default this is 0, which means it will not report them. Note that reporting them will lead to a drop in performance, and reporting them frequently can lead to very large log files.
 
+I've also added support for SKLearn estimators such as Random Forest Classifier, to start a search for an SKLearn estimator you should call create_new_sklearn instead of create_new. The arguments are similair to those in create_new, with the only new argument being raw_classifier, which you should supply the reference to the classifier in the SKLearn package. For example if you wanted to a random search for a RandomForestClassifier you would set raw_classifier as the following.
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+raw_classifier = RandomForestClassifier
+```
+
 Finally we need to call the instances method start, which starts the search. If at any point you want to quit the search simply type "quit" and press enter. Also note that once the search has finished, you will be informed, and then will need to enter quit to kill all the threads.
 
 ## Resume a search
